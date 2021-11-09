@@ -78,12 +78,14 @@ updateService () {
 reloadWebService () {
   echo '============begin reloadWebService============'
   echo 'reloading new cert...'
-  /usr/syno/etc/rc.sysv/nginx.sh reload
-  echo 'relading Apache 2.2'
-  stop pkg-apache22
-  start pkg-apache22
-  reload pkg-apache22
-  echo '============done reloadWebService============'  
+  /usr/syno/bin/synosystemctl restart nginx
+  # not sure whether this is enough
+  #/usr/syno/etc/rc.sysv/nginx.sh reload
+  #echo 'relading Apache 2.2'
+  #stop pkg-apache22
+  #start pkg-apache22
+  #reload pkg-apache22
+  echo '============done reloadWebService============'
 }
 
 revertCrt () {
