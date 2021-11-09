@@ -2,6 +2,7 @@
 
 # path of this script
 BASE_ROOT=$(cd "$(dirname "$0")";pwd)
+echo BASE_ROOT:${BASE_ROOT}
 # date time
 DATE_TIME=`date +%Y%m%d%H%M%S`
 # base crt path
@@ -25,7 +26,7 @@ backupCrt () {
 }
 
 installAcme () {
-  echo 'begin installAcme'
+  echo '============begin installAcme============'
   mkdir -p ${TEMP_PATH}
   cd ${TEMP_PATH}
   echo 'begin downloading acme.sh tool...'
@@ -37,25 +38,27 @@ installAcme () {
   echo 'begin installing acme.sh tool...'
   cd ${SRC_NAME}
   ./acme.sh --install --nocron --home ${ACME_BIN_PATH}
-  echo 'done installAcme'
+  echo '============done installAcme============'
   rm -rf ${TEMP_PATH}
   return 0
 }
 
 generateCrt () {
-  echo 'begin generateCrt'
+  echo '============begin generateCrt============'
   cd ${BASE_ROOT}
   source config
   echo 'begin updating default cert by acme.sh tool'
   source ${ACME_BIN_PATH}/acme.sh.env
   ${ACME_BIN_PATH}/acme.sh --force --log --issue --dns ${DNS} --dnssleep ${DNS_SLEEP} -d "${DOMAIN}" -d "*.${DOMAIN}"
-  ${ACME_BIN_PATH}/acme.sh --force --installcert -d ${DOMAIN} -d *.${DOMAIN} \
-    --certpath ${CRT_PATH}/cert.pem \
-    --key-file ${CRT_PATH}/privkey.pem \
-    --fullchain-file ${CRT_PATH}/fullchain.pem
-
+  # ${ACME_BIN_PATH}/acme.sh --installcert -d ${DOMAIN} -d *.${DOMAIN} \
+  #  --certpath ${CRT_PATH}/cert.pem \
+  #  --key-file ${CRT_PATH}/privkey.pem \
+  #  --fullchain-file ${CRT_PATH}/fullchain.pem
+  cp ${BASE_ROOT}/acme.sh/${DOMAIN}/${DOMAIN}.cer ${CRT_PATH}/cert.pem
+  cp ${BASE_ROOT}/acme.sh/${DOMAIN}/${DOMAIN}.key ${CRT_PATH}/privkey.pem
+  cp ${BASE_ROOT}/acme.sh/${DOMAIN}/fullchain.cer ${CRT_PATH}/fullchain.pem
   if [ -s "${CRT_PATH}/cert.pem" ]; then
-    echo 'done generateCrt'
+    echo '============done generateCrt============'
     return 0
   else
     echo '[ERR] fail to generateCrt'
@@ -66,25 +69,25 @@ generateCrt () {
 }
 
 updateService () {
-  echo 'begin updateService'
+  echo '============begin updateService============'
   echo 'cp cert path to des'
-  /bin/python2 ${BASE_ROOT}/crt_cp.py ${CRT_PATH_NAME}
-  echo 'done updateService'
+  /bin/python3 ${BASE_ROOT}/crt_cp.py ${CRT_PATH_NAME}
+  echo '============done updateService============'
 }
 
 reloadWebService () {
-  echo 'begin reloadWebService'
+  echo '============begin reloadWebService============'
   echo 'reloading new cert...'
   /usr/syno/etc/rc.sysv/nginx.sh reload
   echo 'relading Apache 2.2'
   stop pkg-apache22
   start pkg-apache22
   reload pkg-apache22
-  echo 'done reloadWebService'  
+  echo '============done reloadWebService============'  
 }
 
 revertCrt () {
-  echo 'begin revertCrt'
+  echo '============begin revertCrt============'
   BACKUP_PATH=${BASE_ROOT}/backup/$1
   if [ -z "$1" ]; then
     BACKUP_PATH=`cat ${BASE_ROOT}/backup/latest`
@@ -98,17 +101,17 @@ revertCrt () {
   echo "${BACKUP_PATH}/package_cert ${PKG_CRT_BASE_PATH}"
   cp -rf ${BACKUP_PATH}/package_cert/* ${PKG_CRT_BASE_PATH}
   reloadWebService
-  echo 'done revertCrt'
+  echo '============done revertCrt============'
 }
 
 updateCrt () {
-  echo '------ begin updateCrt ------'
+  echo '============begin updateCrt ============'
   backupCrt
   installAcme
   generateCrt
   updateService
   reloadWebService
-  echo '------ end updateCrt ------'
+  echo '============ end updateCrt============'
 }
 
 case "$1" in
@@ -126,3 +129,4 @@ case "$1" in
         echo "Usage: $0 {update|revert}"
         exit 1
 esac
+
