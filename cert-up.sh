@@ -54,9 +54,13 @@ generateCrt () {
   #  --certpath ${CRT_PATH}/cert.pem \
   #  --key-file ${CRT_PATH}/privkey.pem \
   #  --fullchain-file ${CRT_PATH}/fullchain.pem
-  cp ${BASE_ROOT}/acme.sh/${DOMAIN}/${DOMAIN}.cer ${CRT_PATH}/cert.pem
-  cp ${BASE_ROOT}/acme.sh/${DOMAIN}/${DOMAIN}.key ${CRT_PATH}/privkey.pem
-  cp ${BASE_ROOT}/acme.sh/${DOMAIN}/fullchain.cer ${CRT_PATH}/fullchain.pem
+  ACME_CERT_DIR=${BASE_ROOT}/acme.sh/${DOMAIN}_ecc
+  if [ ! -d "${ACME_CERT_DIR}" ]; then
+    ACME_CERT_DIR=${BASE_ROOT}/acme.sh/${DOMAIN}
+  fi
+  cp ${ACME_CERT_DIR}/${DOMAIN}.cer ${CRT_PATH}/cert.pem
+  cp ${ACME_CERT_DIR}/${DOMAIN}.key ${CRT_PATH}/privkey.pem
+  cp ${ACME_CERT_DIR}/fullchain.cer ${CRT_PATH}/fullchain.pem
   if [ -s "${CRT_PATH}/cert.pem" ]; then
     echo '============done generateCrt============'
     return 0
